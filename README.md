@@ -4,7 +4,7 @@ Automation of deploy Clonezilla Server for cloning partitions or images on compu
 
 ## Base distribution
 
-This automation is developed for Debian 11 Bullseye, any other Debian-like distributions or other major versions of Debian GNU/Linux. Probably require an minimal update for concrete package of grub-common causing an downgrade, this is explained in future LaTeX documentation.
+This automation is developed for Debian 11 Bullseye, any other Debian-like distributions or other major versions of Debian GNU/Linux. Probably require an minimal update for concrete package of grub-common because an downgrade is necesary for DRBL, this is explained in future LaTeX documentation.
 
 On other Distributions Red-Hat like remain not tested, but is planned to develop this deployment.
 
