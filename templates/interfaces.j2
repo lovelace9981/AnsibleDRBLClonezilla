@@ -1,0 +1,29 @@
+# {{ ansible_managed }}
+
+source /etc/networ/interfaces.d/*
+
+{% for iface in ansible_facts.interfaces | sort %}
+    {% if iface == 'lo' -%}
+        # Loopbak Interface
+            auto lo
+            iface lo inet loopback
+    {%- else -%}
+        {% if iface == ansible_default_ipv4.alias -%}
+            # Interface {{ iface }} WAN Interface
+            auto {{ iface }}
+            iface {{ iface }} inet static
+            address {{ iface_wan[0] }}
+            netmask 255.255.255.0
+            gateway {{ iface_wan_gateway[0] }}
+            dns-nameservers {{ iface_wan_nameservers[0] }}
+        {% else -%}
+            # Interface {{ iface }} LAN Interface
+            auto {{ iface }}
+            iface {{ iface }} inet static
+            address {{ iface_lan[0] }}
+            netmask 255.255.255.0
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+

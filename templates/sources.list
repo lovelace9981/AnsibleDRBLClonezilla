@@ -1,0 +1,2 @@
+deb http://ftp.se.debian.org/debian/ bullseye main # (Or any Debian mirror site near you)
+deb http://free.nchc.org.tw/drbl-core drbl stable

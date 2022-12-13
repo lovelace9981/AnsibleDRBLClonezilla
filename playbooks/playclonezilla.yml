@@ -1,0 +1,144 @@
+---
+- hosts: clonezillaservers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    # DANGEROUS: Your WAN IP need to be the same if already as asigned to DHCP or Ansible did not auto reconnect
+    iface_wan:
+      - 192.168.122.86
+    iface_wan_gateway:
+      - 192.168.122.1
+    iface_wan_nameservers:
+      - 192.168.122.1
+    iface_lan:
+      - 192.168.111.1
+
+  tasks:
+  - name: Defining dinamyc interfaces
+    ansible.builtin.template:
+      src: ../templates/interfaces.j2
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: '0644'
+      trim_blocks: yes
+      lstrip_blocks: yes
+
+  # - name: Restarting network interfaces 
+  #   ansible.builtin.command: "sudo ifdown exclude=lo --allow=hotplug && ifup exclude=lo --allow=hotplug"
+  #   ignore_unreachable: true
+  - name: Restarting network services
+    ansible.builtin.systemd:
+      name: networking.service
+      state: restarted
+    ignore_unreachable: true
+
+  - name: reconnect
+    ansible.builtin.wait_for_connection:
+      connect_timeout: 15
+      sleep: 5 
+      timeout: 300
+
+  - name: Install GPG Keys
+    ansible.builtin.apt:
+      name: gpg
+      state: present
+      update_cache: yes
+
+  - name: APT repositories
+    ansible.builtin.template:
+      src: ../templates/sources.list
+      dest: /etc/apt/sources.list
+      owner: root
+      group: root
+      mode: '0644'
+      trim_blocks: yes
+      lstrip_blocks: yes
+
+  - name: Downloading GPG keys for DRBL repository.
+    ansible.builtin.get_url:
+      url: http://drbl.org/GPG-KEY-DRBL
+      dest: /tmp/GPG-DRBL.gpg
+      owner: root
+      group: root
+      mode: '600'
+
+  - name: Adding GPG key to apt-key
+    ansible.builtin.apt_repository:
+      repo: "deb http://free.nchc.org.tw/drbl-core drbl stable"
+      state: present
+
+  - name: Adding DRBL apt signing key.
+    ansible.builtin.apt_key:
+      file: /tmp/GPG-DRBL.gpg
+      state: present
+  
+  - name: Installing DRBL binary
+    ansible.builtin.apt:
+      name: drbl
+      state: present
+
+  - name: Installing grub specific package [2.06-3~deb11u1]
+    ansible.builtin.apt:
+      name: grub-common=2.06-3~deb11u1
+      state: present
+      allow_downgrade: true
+
+  - name: Installing DRBL service with parameters - Long process
+    ansible.builtin.command: "sudo drblsrv -i --testing n --unstable n --netinstall y --smp-client n --set-proxy n --console-output n --upgrade_system y --client_archi 2 --client_kernel_from 2 --language 0"
+    register: drblsrv_output
+
+  - name: Showing Output.
+    ansible.builtin.debug:
+      var: drblsrv_output
+  
+  - name: Press any key to continue or cancel if a erorr is encountered.
+    ansible.builtin.pause:
+
+  - name: Deploying kernel image for clients from actual server image
+    ansible.builtin.command: "sudo drblsrv-offline -c -d -a -l en_US.UTF-8 -s $(uname -a | cut -d " " -f 3)"
+    register: drblsrv_offline_output
+
+  - name: Showing Output.
+    ansible.builtin.debug:
+      var: drblsrv_offline_output
+  
+  - name: Press any key to continue or cancel if a erorr is encountered.
+    ansible.builtin.pause:
+  
+  - name: Making template for drblpush.conf
+    ansible.builtin.template:
+      src: ../templates/drblpush.conf.j2
+      dest: /etc/drbl/drblpush.conf
+      owner: root
+      group: root
+      mode: '0644'
+      trim_blocks: yes
+      lstrip_blocks: yes
+
+  - name: Installing pip3
+    ansible.builtin.apt:
+      name: python3-pip
+      state: present
+
+  - name: install pexpect
+    pip:
+      name: pexpect
+
+  - name: launching drblpush with config file
+    expect:
+      command: "sudo drblpush -c /etc/drbl/drblpush.conf"
+      responses:
+        (.*)Press Enter to continue...(.*): "\n"
+        (.*)[Y/n](.*): "Y"
+    register: drblpush_output
+
+  - name: DEBUG drblpush
+    ansible.builtin.debug:
+      var: drblpush_output
+    
+  - name: Press any key to continue or cancel if a erorr is encountered.
+    ansible.builtin.pause:
+
+  - name: Launching clonezilla"

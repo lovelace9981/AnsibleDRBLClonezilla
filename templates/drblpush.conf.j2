@@ -1,0 +1,47 @@
+# {{ ansible_managed }}
+
+#Setup for general
+[general]
+domain=osl.local
+nisdomain=oslzilla
+localswapfile=no
+client_init=text
+login_gdm_opt=
+timed_login_time=
+maxswapsize=
+ocs_img_repo_dir=/home/partimag
+total_client_no=25
+create_account=
+account_passwd_length=8
+hostname=osl-
+purge_client=no
+client_autologin_passwd=
+client_root_passwd=
+client_pxelinux_passwd=
+set_client_system_select=yes
+use_graphic_pxelinux_menu=no
+set_DBN_client_audio_plugdev=no
+open_thin_client_option=no
+client_system_boot_timeout=100
+language=en_US.UTF-8
+set_client_public_ip_opt=no
+config_file=drblpush.conf
+collect_mac=no
+run_drbl_ocs_live_prep=yes
+drbl_ocs_live_server=
+clonezilla_mode=full_clonezilla_mode
+live_client_branch=alternative
+live_client_cpu_mode=amd64
+drbl_mode=none
+drbl_server_as_NAT_server=yes
+add_start_drbl_services_after_cfg=yes
+continue_with_one_port=
+
+{% for iface in ansible_facts.interfaces | sort %}
+{%- if iface != ansible_default_ipv4.alias and iface != 'lo' -%}
+#Setup for {{ iface }}
+[{{ iface }}]
+interface={{ iface }}
+range=100-124
+{% endif %}
+{% endfor %}
