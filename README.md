@@ -1,6 +1,6 @@
 # AnsibleDRBLClonezilla
 
-Automation of deploy DRBL Clonezilla Server for cloning partitions or images on computers with PXE on local network.
+Automation of deployment DRBL Clonezilla Server for cloning partitions or images on computers with PXE on local network.
 
 ## Base distribution
 
