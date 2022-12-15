@@ -15,7 +15,7 @@
 
   tasks:
     # Requires ansible-galaxy collection install ansible.posix
-    - name: Showing Output multicast comprobar si has hecho el split bien!
+    - name: Comprobar si has hecho el split bien! Cancela en el caso de que no lo hayas hecho bien
       ansible.builtin.debug:
         var: image_name
       when: push_image     
