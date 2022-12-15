@@ -14,3 +14,4 @@ On other Distributions Red-Hat like remain not tested, but is planned to develop
 - [ ] If problems is encountered, a FAQ.md is created for this.
 
 ## Developed with OSL Oficina de Software Libre - Universidad de Granada.
+![image](https://user-images.githubusercontent.com/64685260/207891712-a14d976a-70b5-4a8c-a610-ee02ed9c1204.png)
