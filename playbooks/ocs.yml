@@ -1,0 +1,47 @@
+---
+- hosts: clonezillaservers
+  become: yes
+  gather_facts: yes
+ 
+  vars:
+    push_image: no
+    image_origin: "/reciclaje-2022-3-ok"
+    # image_name: "{{ image_origin.split('/')[0] }}"
+    image_name: "reciclaje-2022-3-ok"
+    clonezilla_mode_multicast: yes
+    clonezilla_mode_multicast_wait_client: 6
+    clonezilla_mode_multicast_wait_time: 60
+    clonezilla_mode_unicast: no
+
+  tasks:
+    - name: Copy a new image file file into place, backing up the original if it differs from the copied version
+      ansible.posix.synchronize:
+        src: "{{ image_origin }}"
+        dest: /home/partimag
+        rsync_path: "sudo rsync"  # Use sudo on the remote system
+        mode: push
+        recursive: true 
+      when: push_image
+
+    - name: Creating OCS *Clonezilla server session in multicast mode
+      expect:
+        command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot --clients-to-wait {{ clonezilla_mode_multicast_wait_client }} --max-time-to-wait {{ clonezilla_mode_multicast_wait_time }} -l es_ES.UTF-8 startdisk multicast_restore {{ image_name }} sda"
+        responses: 
+          (.*)Pulse "Intro" para continuar......(.*): "\n"
+      register: ocs_output
+      when: clonezilla_mode_multicast
+
+    - name: Showing Output multicast
+      ansible.builtin.debug:
+        var: ocs_output
+      when: clonezilla_mode_multicast
+
+    - name: Creating OCS * Clonezilla server session in unicast mode
+      ansible.builtin.shell: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot -l es_ES.UTF-8 startdisk restore {{ image_name }} sda"
+      register: ocs_output
+      when: clonezilla_mode_unicast
+
+    - name: Showing Output unicast
+      ansible.builtin.debug:
+        var: ocs_output
+      when: clonezilla_mode_unicast
