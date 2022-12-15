@@ -4,27 +4,78 @@
   gather_facts: yes
  
   vars:
-    push_image: no
-    image_origin: "/reciclaje-2022-3-ok"
-    # image_name: "{{ image_origin.split('/')[0] }}"
-    image_name: "reciclaje-2022-3-ok"
-    clonezilla_mode_multicast: yes
+    push_image: yes
+    image_origin: "~/Documents/ImagesOSL/reciclaje-2022-3-ok"
+    image_name: "{{ image_origin.split('/')[3] }}"
+   #image_name: "reciclaje-2022-3-ok"
+    clonezilla_mode_multicast: no
     clonezilla_mode_multicast_wait_client: 6
     clonezilla_mode_multicast_wait_time: 60
-    clonezilla_mode_unicast: no
+    clonezilla_mode_unicast: true
 
   tasks:
+    # Requires ansible-galaxy collection install ansible.posix
+    - name: Showing Output multicast comprobar si has hecho el split bien!
+      ansible.builtin.debug:
+        var: image_name
+      when: push_image     
+    
+    - name: Press enter to continue or cancel if a erorr is encountered.
+      ansible.builtin.pause:
+      when: push_image
+
+    - name: AutoInstalling rsync on local workstation
+      ansible.builtin.apt:
+        name: rsync
+        state: present
+        update_cache: yes
+      delegate_to: localhost
+      when: push_image
+
+    - name: AutoInstalling rsync on server
+      ansible.builtin.apt:
+        name: rsync
+        state: present
+        update_cache: yes
+      when: push_image
+
+    - name: Check and changing the folder owner
+      ansible.builtin.file:
+        path: /home/partimag
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        recurse: yes
+
     - name: Copy a new image file file into place, backing up the original if it differs from the copied version
       ansible.posix.synchronize:
         src: "{{ image_origin }}"
-        dest: /home/partimag
-        rsync_path: "sudo rsync"  # Use sudo on the remote system
+        dest: "/home/{{ ansible_user }}"
         mode: push
         recursive: true 
+      become_user: "{{ ansible_user }}"
+      register: rsync_output
       when: push_image
+    
+    - name: Showing Output multicast
+      ansible.builtin.debug:
+        var: rsync_output
+      when: push_image
+    
+    - name: Checker of folder
+      ansible.builtin.stat: path="/home/{{ ansible_user }}/{{ image_name }}"
+      register: stat_folder
+
+    - name: Checker of destination folder
+      ansible.builtin.stat: path="/home/partimag/{{ image_name }}"
+      register: stat_destination_folder
+
+    # Hacer comprobacion de si el fichero previamente existe en el destino
+    - name: Moving folder to /home/partimag
+      ansible.builtin.command: "sudo mv /home/{{ ansible_user }}/{{ image_name }} /home/partimag/" 
+      when: stat_folder.stat.exists and not stat_destination_folder.stat.exists
 
     - name: Creating OCS *Clonezilla server session in multicast mode
-      expect:
+      ansible.builtin.expect:
         command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot --clients-to-wait {{ clonezilla_mode_multicast_wait_client }} --max-time-to-wait {{ clonezilla_mode_multicast_wait_time }} -l es_ES.UTF-8 startdisk multicast_restore {{ image_name }} sda"
         responses: 
           (.*)Pulse "Intro" para continuar......(.*): "\n"
@@ -37,7 +88,7 @@
       when: clonezilla_mode_multicast
 
     - name: Creating OCS * Clonezilla server session in unicast mode
-      ansible.builtin.shell: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot -l es_ES.UTF-8 startdisk restore {{ image_name }} sda"
+      ansible.builtin.command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot -l es_ES.UTF-8 startdisk restore {{ image_name }} sda"
       register: ocs_output
       when: clonezilla_mode_unicast
 

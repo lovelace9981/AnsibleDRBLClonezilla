@@ -6,9 +6,9 @@
   vars:
     # DANGEROUS: Your WAN IP need to be the same if already as asigned to DHCP or Ansible did not auto reconnect
     iface_wan:
-      - 192.168.1.101
+      - 192.168.122.68
     iface_wan_gateway:
-      - 192.168.1.1
+      - 192.168.122.1
     iface_wan_nameservers:
       - 1.1.1.1
     iface_lan:
@@ -25,9 +25,6 @@
       trim_blocks: yes
       lstrip_blocks: yes
 
-  # - name: Restarting network interfaces 
-  #   ansible.builtin.command: "sudo ifdown exclude=lo --allow=hotplug && ifup exclude=lo --allow=hotplug"
-  #   ignore_unreachable: true
   - name: Restarting network services
     ansible.builtin.systemd:
       name: networking.service
@@ -94,7 +91,7 @@
     ansible.builtin.debug:
       var: drblsrv_output
   
-  - name: Press any key to continue or cancel if a erorr is encountered.
+  - name: Press enter to continue or cancel if a erorr is encountered.
     ansible.builtin.pause:
 
   - name: Deploying kernel image for clients from actual server image
@@ -105,7 +102,7 @@
     ansible.builtin.debug:
       var: drblsrv_offline_output
   
-  - name: Press any key to continue or cancel if a erorr is encountered.
+  - name: Press enter to continue or cancel if a erorr is encountered.
     ansible.builtin.pause:
   
   - name: Making template for drblpush.conf
