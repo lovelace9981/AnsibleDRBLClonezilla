@@ -6,11 +6,11 @@
   vars:
     # DANGEROUS: Your WAN IP need to be the same if already as asigned to DHCP or Ansible did not auto reconnect
     iface_wan:
-      - 192.168.122.86
+      - 192.168.1.101
     iface_wan_gateway:
-      - 192.168.122.1
+      - 192.168.1.1
     iface_wan_nameservers:
-      - 192.168.122.1
+      - 1.1.1.1
     iface_lan:
       - 192.168.111.1
 
@@ -78,6 +78,7 @@
     ansible.builtin.apt:
       name: drbl
       state: present
+      update_cache: yes
 
   - name: Installing grub specific package [2.06-3~deb11u1]
     ansible.builtin.apt:
@@ -97,7 +98,7 @@
     ansible.builtin.pause:
 
   - name: Deploying kernel image for clients from actual server image
-    ansible.builtin.command: "sudo drblsrv-offline -c -d -a -l en_US.UTF-8 -s $(uname -a | cut -d " " -f 3)"
+    ansible.builtin.shell: "sudo drblsrv-offline -c -d -a -l en_US.UTF-8 -s $(uname -a | cut -d ' ' -f 3)"
     register: drblsrv_offline_output
 
   - name: Showing Output.
@@ -141,4 +142,3 @@
   - name: Press any key to continue or cancel if a erorr is encountered.
     ansible.builtin.pause:
 
-  - name: Launching clonezilla"
