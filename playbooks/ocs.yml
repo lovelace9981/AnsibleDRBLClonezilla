@@ -105,12 +105,12 @@
       ansible.builtin.copy:
         src: "/home/partimag/{{ image_name }}"
         dest: "/home/partimag/{{ image_name }}_old"
-      when: stat_image_destination_folder.stat.exists
+      when: push_image and stat_image_destination_folder.stat.exists
 
     - name: Remove old image on destination folder
       ansible.builtin.file:
         path: "/home/partimag/{{ image_name }}"
-      when: stat_image_destination_folder.stat.exists
+      when: push_image and stat_image_destination_folder.stat.exists
 
     - name: Moving new {{ image_name }} to /home/partimag
       ansible.builtin.command: "sudo mv /home/{{ ansible_user }}/{{ image_name }} /home/partimag/" 

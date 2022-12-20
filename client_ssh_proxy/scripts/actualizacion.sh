@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "1 - actualización de equipo" && sudo apt update && sudo apt upgrade -y && echo "2 - instalación de growpart (parte de cloud-guest-utils)" && sudo apt install -y cloud-guest-utils && echo "3 - ampliación del disco" && sudo growpart /dev/sda 2 && sudo resize2fs /dev/sda2 && echo "4 - Limpieza de paquetes" && sudo apt autoclean -y && sudo apt autoremove -y && sudo apt autopurge -y && sudo update-initramfs -u -k all && sudo update-grub

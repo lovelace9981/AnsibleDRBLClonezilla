@@ -1,0 +1,32 @@
+---
+  clonezillaservers:
+    hosts:
+      cl1:
+        ansible_host: 192.168.1.101
+  clients:
+    hosts:
+      imageclients1:
+        ansible_hosts: 192.168.111.107
+      imageclients2:
+        ansible_hosts: 192.168.111.101
+      imageclients3:
+        ansible_hosts: 192.168.111.102
+      imageclients4:
+        ansible_hosts: 192.168.111.103
+      imageclients5:
+        ansible_hosts: 192.168.111.104
+      imageclients6:
+        ansible_hosts: 192.168.111.105
+   
+  datacenter:
+    children:
+      clonezillaservers:
+        vars:
+          ansible_user: clonezilla
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          ansible_ssh_common_args: ""
+      clients:
+        vars:
+          ansible_user: usuario
+          ansible_ssh_private_key_file: ~/.ssh/id_rsa
+          ansible_ssh_common_args: "-o ProxyCommand=\"ssh clonezilla@192.168.1.1001 -o Port=22 -W %h:%p\""
