@@ -4,14 +4,6 @@
   gather_facts: yes
 
   tasks:
-    # - name: Install sshpass
-    #   ansible.builtin.apt:
-    #     name: sshpass
-    #     state: present
-    #     update_cache: yes
-    #   delegate_to: localhost
-    # la maquina local necesita ssh pass
-
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:
         user: usuario

@@ -1,0 +1,94 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+% ---- Entrada y salida de texto -----
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[utf8]{inputenc}
+%\usepackage{fourier} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+
+% ---- Idioma --------
+
+\usepackage[spanish, es-tabla]{babel} % Selecciona el español para palabras introducidas automáticamente, p.ej. "septiembre" en la fecha y especifica que se use la palabra Tabla en vez de Cuadro
+
+% ---- Otros paquetes ----
+\usepackage{csquotes} %Para permitir el uso de comillas Quotes https://tex.stackexchange.com/questions/36812/isnt-there-any-other-way-of-doing-double-quotes-in-latex-besides
+\usepackage[hyphens]{url} % ,href} %para incluir URLs e hipervínculos dentro del texto (aunque hay que instalar href)
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{graphics,graphicx, floatrow} %para incluir imágenes y notas en las imágenes
+\usepackage{graphics,graphicx, float} %para incluir imágenes y colocarlas
+\usepackage{svg}
+
+\graphicspath {{./img/}}
+
+\usepackage{listings}  %para introducir comandos
+
+\lstdefinestyle{mybash}
+{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue},
+  language=bash,
+  alsoletter=/,
+  basicstyle=\footnotesize,
+  numbers=left,
+  stepnumber=1,
+  showstringspaces=false,
+  tabsize=1,
+  breaklines=true,
+  breakatwhitespace=false,
+}
+
+\lstdefinestyle{yaml}
+{basicstyle=\ttfamily,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue},
+  basicstyle=\color{blue}\footnotesize,
+  rulecolor=\color{black},
+  string=[s]{'}{'},
+  stringstyle=\color{blue},
+  comment=[l]{:},
+  commentstyle=\color{black},
+  morecomment=[l]{-}
+  }
+
+\lstdefinestyle{mysql}
+{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue},
+  language=sql,
+  basicstyle=\footnotesize,
+  numbers=left,
+  stepnumber=1,
+  showstringspaces=false,
+  tabsize=1,
+  breaklines=true,
+  breakatwhitespace=false,
+}
+
+
+% Para hacer tablas comlejas
+%\usepackage{multirow}
+%\usepackage{threeparttable}
+
+%\usepackage{sectsty} % Allows customizing section commands
+%\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height

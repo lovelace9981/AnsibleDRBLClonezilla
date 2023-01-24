@@ -5,13 +5,15 @@
  
   vars:
     push_image: no
-    image_origin: "~/Documents/ImagesOSL/reciclaje-2022-3-ok"
-    image_name: "guinea-ecuatorial-2022-ok"
-   #image_name: ""{{ image_origin.split('/')[3] }}"
-    clonezilla_mode_multicast: no
-    clonezilla_mode_multicast_wait_client: 6
+    image_origin: "/home/partimag/guinea-ecuatorial-2022"
+    #image_name: "imagename"
+    image_name: "{{ image_origin.split('/')[3] }}"
+    workstation_username: username
+    clonezilla_mode_unicast: yes
+    clonezilla_mode_multicast: "{{ not clonezilla_mode_unicast }}"
+    clonezilla_mode_multicast_wait_client: 19
     clonezilla_mode_multicast_wait_time: 60
-    clonezilla_mode_unicast: true
+    clonezilla_disk_restore: "sdb"
 
   tasks:
     # Requires ansible-galaxy collection install ansible.posix
@@ -20,36 +22,22 @@
         var: image_name
       when: push_image
 
-    - name: Check that the {{ image_name }} exists
+    - name: Check that the {{ image_name }} exists on local computer.
       stat:
           path: "{{ image_origin }}"
       register: stat_image_workstation
-      delegate_to: localhost
+      delegate_to: 127.0.0.1
+      connection: local
+      become_user: "{{ workstation_username }}"
       when: push_image
 
-    - name: Assertion of {{ image_name }} exists
+    - name: Assertion of {{ image_name }} exists on local workstation
       ansible.builtin.assert:
         that:
-          - stat_image_workstation
+          - stat_image_workstation.stat.exists
         fail_msg: "Error imagen not found on {{ image_origin }}"
         success_msg: "OK image found on {{ image_origin }}"
       when: push_image
-
-    - name: Checksum of  {{ image_name }} sha256 generated on local workstation
-      stat:
-          path: "{{ image_origin }}"
-          checksum_algorithm: sha256
-      register: checksum_workstation
-      delegate_to: localhost
-      when: push_image
-    
-    - name: AutoInstalling rsync on local workstation
-      ansible.builtin.apt:
-        name: rsync
-        state: present
-        update_cache: yes
-      delegate_to: localhost
-      when: push_image 
 
     - name: AutoInstalling rsync on server
       ansible.builtin.apt:
@@ -66,31 +54,17 @@
         recurse: yes
       when: push_image
 
-    - name: Copy a new image file file into place, backing up the original if it differs from the copied version
+    - name: Using Rsync for copy on server side the image.
       ansible.posix.synchronize:
         src: "{{ image_origin }}"
         dest: "/home/{{ ansible_user }}"
         mode: push
         recursive: true 
+        checksum: true
       become_user: "{{ ansible_user }}"
       register: rsync_output
       when: push_image
     
-    - name: Checksum of  {{ image_name }} sha256 generated on server
-      stat:
-          path: "/home/{{ ansible_user }}/{{ image_name }}"
-          checksum_algorithm: sha256
-      register: checksum_server
-      when: push_image
-
-    - name: Comparing checksums and assertion
-      ansible.builtin.assert:
-        that:
-          - checksum_server == checksum_workstation
-        fail_msg: "Error checksum: \n server: {{ checksum_server }} \n workstation: {{ checksum_workstation }}"
-        success_msg: "OK checksum: \n server: {{ checksum_server }} \n workstation: {{ checksum_workstation }}"
-      when: push_image
-
     - name: Showing Output rsync
       ansible.builtin.debug:
         var: rsync_output
@@ -101,15 +75,10 @@
       register: stat_image_destination_folder
       when: push_image
 
-    - name: Rename old images on destination folder
-      ansible.builtin.copy:
-        src: "/home/partimag/{{ image_name }}"
-        dest: "/home/partimag/{{ image_name }}_old"
-      when: push_image and stat_image_destination_folder.stat.exists
-
     - name: Remove old image on destination folder
       ansible.builtin.file:
         path: "/home/partimag/{{ image_name }}"
+        state: absent
       when: push_image and stat_image_destination_folder.stat.exists
 
     - name: Moving new {{ image_name }} to /home/partimag
@@ -125,18 +94,18 @@
     - name: Assertion of {{ image_name }} exists
       ansible.builtin.assert:
         that:
-          - stat_multicast_image
+          - stat_multicast_image.stat.exists
         fail_msg: "Error imagen not found on /home/partimag/{{ image_name }}"
         success_msg: "OK image found on /home/partimag/{{ image_name }} continue with multicast mode"
       when: clonezilla_mode_multicast and not push_image
 
     - name: Creating OCS *Clonezilla server session in multicast mode
       ansible.builtin.expect:
-        command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot --clients-to-wait {{ clonezilla_mode_multicast_wait_client }} --max-time-to-wait {{ clonezilla_mode_multicast_wait_time }} -l es_ES.UTF-8 startdisk multicast_restore {{ image_name }} sda"
+        command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot --clients-to-wait {{ clonezilla_mode_multicast_wait_client }} --max-time-to-wait {{ clonezilla_mode_multicast_wait_time }} -l es_ES.UTF-8 startdisk multicast_restore {{ image_name }} {{ clonezilla_disk_restore }}"
         responses: 
           (.*)Pulse "Intro" para continuar......(.*): "\n"
       register: ocs_output
-      when: clonezilla_mode_multicast and stat_result.stat.exists
+      when: clonezilla_mode_multicast
 
     - name: Showing Output multicast
       ansible.builtin.debug:
@@ -144,22 +113,22 @@
       when: clonezilla_mode_multicast
    
     - name: Check that the {{ image_name }} exists, mode push_image off
-      stat:
+      ansible.builtin.stat:
         path: /home/partimag/{{ image_name }}
-      register: stat_multicast_image
+      register: stat_unicast_image
       when: clonezilla_mode_unicast and not push_image
     
     - name: Assertion of {{ image_name }} exists
       ansible.builtin.assert:
         that:
-          - stat_multicast_image
+          - stat_unicast_image.stat.exists
         fail_msg: "Error imagen not found on /home/partimag/{{ image_name }}"
         success_msg: "OK image found on /home/partimag/{{ image_name }} continue with unicast mode"
       when: clonezilla_mode_unicast and not push_image
 
     - name: Creating OCS * Clonezilla server session in unicast mode
       ansible.builtin.expect:
-        command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot -l es_ES.UTF-8 startdisk restore {{ image_name }} sda"
+        command: "sudo drbl-ocs -g auto -e1 auto -e2 -r -x -j2 -sc0 -p reboot -l es_ES.UTF-8 startdisk restore {{ image_name }} {{ clonezilla_disk_restore }}"
         responses: 
           (.*)Pulse "Intro" para continuar......(.*): "\n"
       register: ocs_output
