@@ -9,8 +9,7 @@ This automation is developed for Debian 11 Bullseye, any other Debian-like distr
 On other Distributions Red-Hat like remain not tested, but is planned to develop this automation of deployment of DRBL Clonezilla Server.
 
 ## Documentation
-- [ ] LaTeX dense docs for explain all the process and behavior of this playbooks and program DRBL.
-- [ ] HowTo.md for explain the correct execution of Ansible Playbooks and variables.
+- [x] LaTeX dense docs for explain all the process and behavior of this playbooks and program DRBL.
 - [ ] If problems is encountered, a FAQ.md is created for this.
 
 ## Developed with OSL Oficina de Software Libre - Universidad de Granada.
