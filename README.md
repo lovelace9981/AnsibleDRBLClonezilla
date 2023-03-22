@@ -11,6 +11,6 @@ On other Distributions Red-Hat like remain not tested, but is planned to develop
 ## Documentation
 - [x] LaTeX dense docs for explain all the process and behavior of this playbooks and program DRBL.
 - [ ] If problems is encountered, a FAQ.md is created for this.
-
+- [x] Indicados los comandos de ejecución para los clientes.
 ## Developed with OSL Oficina de Software Libre - Universidad de Granada.
 ![image](https://user-images.githubusercontent.com/64685260/207891712-a14d976a-70b5-4a8c-a610-ee02ed9c1204.png)
