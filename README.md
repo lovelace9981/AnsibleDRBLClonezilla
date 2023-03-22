@@ -1,5 +1,5 @@
 # AnsibleDRBLClonezilla
-
+Versión actual: 2.0
 Ansible playbooks to autmatically deployment DRBL Clonezilla Server for cloning partitions or images on computers with PXE on local network.
 
 ## Base distribution
