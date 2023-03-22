@@ -2,32 +2,75 @@
 - hosts: nodes
   become: yes
   gather_facts: yes
+  vars:
+    disk: "/dev/sda"
+    partition: 3
 
   tasks:
+    # Execute with: ansible-playbook --ask-become-pass --inventory-file ../host.ini update_clients_ansible.yml
+    - name: "Showing partition table of one of the system for check if it's correct run_once execute one time first host"
+      ansible.builtin.shell: "fdisk -l | grep {{ disk }}"
+      register: fdisk_register
+      run_once: true
+
+    - name:  "Make sure if your partition and disk is correct {{ disk }} with {{ partition }} concatenated version {{ disk }}{{ partition }}"
+      ansible.builtin.debug:
+        var: fdisk_register
+      run_once: true
+
+    - name: "Pause for checking"
+      ansible.builtin.pause:
+        minutes: 1
+
     - name: Set authorized key taken from file
       ansible.posix.authorized_key:
         user: usuario
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-    
+ 
     - name: apt update
       ansible.builtin.apt:
+        upgrade: yes
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Upgrade the OS (apt dist-upgrade)
+    - name: Remove useless packages from the cache
       ansible.builtin.apt:
-        upgrade: dist
-    
+       autoclean: yes
+
+    - name: Remove dependencies that are no longer required
+      ansible.builtin.apt:
+       autoremove: yes
+
+    - name: snap update
+      ansible.builtin.command: "sudo snap refresh"
+
     - name: Instalando utilidades para incrementar el tamanio de las particiones.
       ansible.builtin.apt:
         name: cloud-guest-utils
         state: present
         update_cache: yes
-    
+
     - name: Incrementando las particiones
-      ansible.builtin.command: "sudo growpart /dev/sda 2 && sudo resize2fs /dev/sda2"
+      ansible.builtin.command: "sudo growpart {{ disk }} {{ partition }}"
+      register: growpart
 
-      
+    - name: Showing growpart.
+      ansible.builtin.debug:
+        var: growpart
 
+    - name: Incrementando el sistema de ficheros
+      ansible.builtin.command: "sudo resize2fs {{ disk }}{{ partition }}"
+      register: resize2fs
 
+    - name: Showing resize2fs
+      ansible.builtin.debug:
+       var: resize2fs
+
+    - name: desactivar servidor SSH
+      ansible.builtin.systemd:
+        enabled: false
+        name: ssh
+
+    - name: apagado del sistema
+      community.general.shutdown:

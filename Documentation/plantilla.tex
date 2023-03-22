@@ -418,7 +418,15 @@ El script deberá estar correctamente escrito o comprobado, o en otro caso usar 
 con un nombre único en la subcarpeta scripts.
 
 \newpage
-Como ejemplo de sustitución de los scripts de bash mejor controlados ponemos un ejemplo:
+Como ejemplo de sustitución de los scripts de bash mejor controlados ponemos un ejemplo bastante ampliado en la V2.0, donde tenemos que tener en cuenta que,
+las particiones de los discos donde si son en UEFI, la partición EXT-4 que queremos extender está en sda3, por lo que la V1.0 nos daría fallo, al 
+estar solamente preparada para los sistemas BIOS.
+
+Esto surge debido a que los sistemas UEFI (EFI), tienen una partición FAT32 EFI que tienen las variables y los archivos de arranque. Antes, en los sistemas MBR,
+el grub se solía guardar en el primer sector del disco.
+
+Tenemos que tener en cuenta las variables de los discos, pero en el caso de no poder visualizarlas en los clientes distribuidos, se ha includo un controlador que muestra
+al operador la tabla de particiones de sda, antes de continuar la ejecución con el playbook. Pudiendose cancelar y cambiar.
 
 \lstinputlisting[style=yaml]{../client_ssh_proxy/playbook/update_clients_ansible.yml}
 
@@ -444,6 +452,11 @@ ssh-copy-id clonezilla@192.168.1.101
 	\caption{Proceso de copia de clave pública RSA al servidor..}
 \end{figure}
 	
+Por ultimo para poder ejecutar el playbook, que nos permite actualizar los clientes tenemos que ejecutar el siguiente comando.
+
+\begin{lstlisting}[style=mybash]
+ansible-playbook --ask-become-pass --inventory-file ../host.ini update_clients_ansible.yml
+\end{lstlisting}
 
 
 % \vspace{5mm}

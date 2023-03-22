@@ -1,0 +1,2 @@
+docs:
+	pdflatex plantilla.tex
