@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 
-source /etc/networ/interfaces.d/*
+source /etc/network/interfaces.d/*
 
 {% for iface in ansible_facts.interfaces | sort %}
     {% if iface == 'lo' -%}
